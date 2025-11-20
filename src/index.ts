@@ -2,6 +2,7 @@ import { Config } from "./misc/Config";
 import * as CommandRun from "./services/CommandRun";
 import * as NoCommandRun from "./services/NoCommandRun";
 import * as SealConfigRegister from "./services/SealConfigRegister";
+import { SealPack } from "./types/SealPack";
 import { gLT } from "./utils/I18n";
 import { fS } from "./utils/StringFormatter";
 
