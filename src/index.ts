@@ -1,38 +1,55 @@
-import { sample } from "lodash-es";
-import { nameList } from "./utils";
+import { Config } from "./misc/Config";
+import * as CommandRun from "./services/CommandRun";
+import * as NoCommandRun from "./services/NoCommandRun";
+import * as SealConfigRegister from "./services/SealConfigRegister";
+import { gLT } from "./utils/I18n";
+import { fS } from "./utils/StringFormatter";
 
-function main() {
+console.log(fS(gLT("loading_ext"), Config.ext_name));
+// 创建扩展
+let ext = seal.ext.find(Config.ext_name);
+if (!ext) {
+  ext = seal.ext.new(Config.ext_name, Config.author, Config.version);
   // 注册扩展
-  let ext = seal.ext.find('test');
-  if (!ext) {
-    ext = seal.ext.new('test', '木落', '1.0.0');
-    seal.ext.register(ext);
-  }
-
-  // 编写指令
-  const cmdSeal = seal.ext.newCmdItemInfo();
-  cmdSeal.name = 'seal';
-  cmdSeal.help = '召唤一只海豹，可用.seal <名字> 命名';
-
-  cmdSeal.solve = (ctx, msg, cmdArgs) => {
-    let val = cmdArgs.getArgN(1);
-    switch (val) {
-      case 'help': {
-        const ret = seal.ext.newCmdExecuteResult(true);
-        ret.showHelp = true;
-        return ret;
-      }
-      default: {
-        // 命令为 .seal XXXX，取第一个参数为名字
-        if (!val) val = sample(nameList); // 无参数，随机名字
-        seal.replyToSender(ctx, msg, `你抓到一只海豹！取名为${val}\n它的逃跑意愿为${Math.ceil(Math.random() * 100)}`);
-        return seal.ext.newCmdExecuteResult(true);
-      }
-    }
-  }
-
-  // 注册命令
-  ext.cmdMap['seal'] = cmdSeal;
+  seal.ext.register(ext);
 }
 
-main();
+// 编写指令
+const cmdChatFramework = seal.ext.newCmdItemInfo();
+cmdChatFramework.name = Config.ext_name;
+cmdChatFramework.help = gLT("help_document_base");
+
+cmdChatFramework.solve = (ctx, msg, cmdArgs) => {
+  let sealPack = new SealPack(ctx, msg, cmdArgs, ext)
+  let val = cmdArgs.getArgN(1);
+  switch (val) {
+    case 'help': {
+      const ret = seal.ext.newCmdExecuteResult(true);
+      ret.showHelp = true;
+      return ret;
+    }
+    default: {
+      CommandRun.enter(sealPack);
+      return seal.ext.newCmdExecuteResult(true);
+    }
+  }
+}
+
+// 注册非命令
+if(Config.no_command_enabled) {
+  ext.onNotCommandReceived = (ctx, msg) => {
+    let sealPack = new SealPack(ctx, msg, null, ext)
+    NoCommandRun.enter(sealPack);
+  }
+}
+
+// 注册命令
+for (let word of Config.awake_words) {
+  ext.cmdMap[word] = cmdChatFramework;
+}
+
+// 注册配置项
+SealConfigRegister.enter()
+
+// 确认插件加载完毕
+console.log(seal.ext.find(Config.ext_name) ? gLT("result_ok") : gLT("result_bad"));
