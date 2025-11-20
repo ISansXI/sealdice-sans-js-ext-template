@@ -15,3 +15,7 @@ class SealPack {
         return {ctx: this.ctx, msg: this.msg, cmdArgs: this.cmdArgs, ext: this.ext}
     }
 }
+
+export {
+    SealPack
+}
