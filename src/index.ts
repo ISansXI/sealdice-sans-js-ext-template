@@ -3,8 +3,8 @@ import * as CommandRun from "./services/CommandRun";
 import * as NoCommandRun from "./services/NoCommandRun";
 import * as SealConfigRegister from "./services/SealConfigRegister";
 import { SealPack } from "./types/SealPack";
-import { gLT } from "./utils/I18n";
-import { fS } from "./utils/StringFormatter";
+import { gLT } from "./utils/I18nUtil";
+import { fS } from "./utils/StringFormatterUtil";
 
 console.log(fS(gLT("loading_ext"), Config.ext_name));
 // 创建扩展

@@ -1,5 +1,5 @@
-import { gLT } from "./I18n";
-import { fS } from "./StringFormatter";
+import { gLT } from "./I18nUtil";
+import { fS } from "./StringFormatterUtil";
 
 enum MODEL_INFO {
     NAME = "ListFormatter"

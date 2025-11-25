@@ -1,5 +1,5 @@
 import { Config } from "../misc/Config";
-import { showError } from "./Logger";
+import { showError } from "./LoggerUtil";
 
 enum MODEL_INFO {
     NAME = "DataController"
