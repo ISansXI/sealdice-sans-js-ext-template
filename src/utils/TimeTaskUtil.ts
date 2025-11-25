@@ -184,6 +184,61 @@ function getFutureTime(duration: string | number): string {
     return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
 }
 
+/**
+ * 注册一个定时任务到指定的扩展。
+ * 该任务可以基于特定的时间点（一次性）或周期性的 cron 表达式来执行。
+ *
+ * @param {seal.ExtInfo} ext - 扩展信息对象，指定任务要注册到哪个扩展。
+ * @param {number} [timestamp] - 任务执行的时间戳（与 formattedTime 二选一）。
+ *                               例如：`new Date('2024-05-20T13:14:00').getTime()`。
+ *                               如果 `repeat` 为 false，此时间点即为任务唯一的执行时间。
+ *                               如果 `repeat` 为 true，任务将从该时间点开始，按照其时间模式周期性执行。
+ * @param {string} [formattedTime] - 任务执行的格式化时间字符串（与 timestamp 二选一），格式必须为 'yyyy-MM-dd hh:mm:ss'。
+ *                                   例如：'2024-05-20 13:14:00'。
+ *                                   其作用与 `timestamp` 参数类似，只是提供了更易读的方式来指定时间。
+ * @param {boolean} [repeat=false] - 指示任务是否需要重复执行。
+ *                                   - `true`: 任务将被设置为周期性执行。生成的 cron 表达式将不包含具体年份，
+ *                                             因此会每年重复。例如，'14 13 20 5 *' 会在每年的 5月20日13:14执行。
+ *                                   - `false`: 任务将只执行一次。生成的 cron 表达式将包含具体的年份，
+ *                                              例如，'14 13 20 5 * 2024'。这依赖于 cron 解析器支持年份字段。
+ * @param {Function} task - 当任务触发时需要执行的函数。这是任务的核心逻辑。
+ * @param {string} [key] - 任务的唯一标识符。如果提供，后续可以通过此 key 来查找或取消该任务。
+ * @param {string} [desc] - 任务的描述信息，用于说明任务的用途，方便后续维护和调试。
+ *
+ * @throws {Error} 如果 `timestamp` 和 `formattedTime` 同时被提供，将抛出错误。
+ * @throws {Error} 如果 `timestamp` 和 `formattedTime` 都未被提供，将抛出错误。
+ * @throws {Error} 如果 `formattedTime` 格式不正确，将由内部的 `generateCronFromTime` 函数抛出错误。
+ * @throws {Error} 如果 `timestamp` 不是一个有效的数字，将由内部的 `generateCronFromTime` 函数抛出错误。
+ *
+ * @example
+ * // 示例 1: 注册一个一次性任务（使用 formattedTime）
+ * registerTimeTask(
+ *   myExtension,
+ *   undefined,
+ *   '2024-12-31 23:59:59',
+ *   false,
+ *   () => {
+ *     console.log('新年快乐！');
+ *   },
+ *   'newYearEveTask',
+ *   '在2024年除夕执行的祝福任务'
+ * );
+ *
+ * @example
+ * // 示例 2: 注册一个周期性任务（使用 timestamp）
+ * const birthday = new Date('2000-09-15T08:00:00').getTime();
+ * registerTimeTask(
+ *   myExtension,
+ *   birthday,
+ *   undefined,
+ *   true,
+ *   () => {
+ *     console.log('生日快乐！');
+ *   },
+ *   'birthdayReminder',
+ *   '每年生日当天早上8点发送祝福'
+ * );
+ */
 function registerTimeTask(ext: seal.ExtInfo, timestamp: number, formattedTime: string, repeat: boolean = false, task: Function, key?:string, desc?:string) {
     // 1. 参数校验：确保 timestamp 和 formattedTime 不同时提供
     if (timestamp !== undefined && formattedTime !== undefined) {
